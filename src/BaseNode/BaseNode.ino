@@ -19,7 +19,17 @@
 
 #define EEPROM_PHY_ADDR_START 0
 #define RF24_PAYLOAD 32
-
+#define BLOCK_S 0x40
+#define BLOCK_R 0x80
+#define BLOCK_I 0xC0
+#define BLOCK_S_RESQUEST              0x00
+#define BLOCK_S_REPLY                 0x01
+#define BLOCK_S_CMD_CONNECT           0x00
+#define BLOCK_S_CMD_DISCONNECT        0x01
+#define BLOCK_S_CMD_WAKEUP            0x02
+#define BLOCK_S_CMD_SYNC              0x03
+#define BLOCK_S_CMD_LINK              0x04
+#define BLOCK_S_CMD_CELL_PARAM        0x05
 RF24 radio(7,8);
 byte LocalPhyAddress[5];
 byte RemotePhyAddress[5];
@@ -56,8 +66,56 @@ int ReadLocalPhyAddress(void)
   Serial.write(EEPROM.read(EEPROM_PHY_ADDR_START+4));
   return 0;
 }
+int BlockPorcess(byte* datain, byte* dataout)
+{
+  byte CTL = *datain;
+  byte LEN = *(datain + 1);
+  byte CRC = *(datain + LEN + 1);
+  byte BlockType;
+  byte cmd;
+  bit link;// more 1, last 0
+  bit reqp;//request 0 , reply 1
+  BlockType = (CTL&0xC0);
+  if(BLOCK_S == BlockType)
+  {
+    cmd = (CTL&0x1F);
+    reqp= (CTL&(1<<5));
+    switch(cmd)
+    {
+      case :
+      
+      break;
+      default:
+      break;
+    }
+  }
+  else if(BLOCK_R == BlockType)
+  {    switch()
+    {
+      case :
+      break;
+      default:
+      break;
+    }
+  }
+  else if(BLOCK_I == BlockType)
+  {
+        switch()
+    {
+      case :
+      break;
+      default:
+      break;
+    }
+  }
+  else
+  {
+    // block type error
+  }
+}
 /*##################################################################################################*/
 void setup(){
+  uint64_t addr;
   Serial.begin(115200); 
 
   LocalPhyAddress[0] = EEPROM.read(EEPROM_PHY_ADDR_START);
@@ -67,10 +125,12 @@ void setup(){
   LocalPhyAddress[4] = EEPROM.read(EEPROM_PHY_ADDR_START+4);
   memcpy( RemotePhyAddress,LocalPhyAddress,5);
   RemotePhyAddress[0] = 0x00;
- 
-  radio.openWritingPipe(RemotePhyAddress);
-  radio.openReadingPipe(0,BroadCastAddress);
-  radio.openReadingPipe(1,LocalPhyAddress);
+  memcpy(addr,RemotePhyAddress,5);
+  radio.openWritingPipe(addr);
+  memcpy(addr,BroadCastAddress,5);
+  radio.openReadingPipe(0,addr);
+  memcpy(addr,LocalPhyAddress,5);
+  radio.openReadingPipe(1,addr);
   #if 0
   radio.begin();
   #endif
@@ -86,8 +146,8 @@ void loop(){
       {                                   
         radio.read( data, RF24_PAYLOAD);             // Get the payload
       }
-     
       radio.stopListening();                                        // First, stop listening so we can talk   
+      BlockPorcess(data,data);
       radio.write( data, RF24_PAYLOAD);              // Send the final one back.      
       radio.startListening();                                       // Now, resume listening so we catch the next packets.     
    }
