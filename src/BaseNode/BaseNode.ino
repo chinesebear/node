@@ -73,8 +73,8 @@ int BlockPorcess(byte* datain, byte* dataout)
   byte CRC = *(datain + LEN + 1);
   byte BlockType;
   byte cmd;
-  bit link;// more 1, last 0
-  bit reqp;//request 0 , reply 1
+  byte link;// more 1, last 0
+  byte reqp;//request 0 , reply 1
   BlockType = (CTL&0xC0);
   if(BLOCK_S == BlockType)
   {
@@ -82,31 +82,20 @@ int BlockPorcess(byte* datain, byte* dataout)
     reqp= (CTL&(1<<5));
     switch(cmd)
     {
-      case :
-      
-      break;
+      case BLOCK_S_CMD_CONNECT:
+            
+           break;
       default:
-      break;
+           break;
     }
   }
   else if(BLOCK_R == BlockType)
-  {    switch()
-    {
-      case :
-      break;
-      default:
-      break;
-    }
+  {    
+    
   }
   else if(BLOCK_I == BlockType)
   {
-        switch()
-    {
-      case :
-      break;
-      default:
-      break;
-    }
+
   }
   else
   {
@@ -115,7 +104,7 @@ int BlockPorcess(byte* datain, byte* dataout)
 }
 /*##################################################################################################*/
 void setup(){
-  uint64_t addr;
+  uint64_t addr=0x0;
   Serial.begin(115200); 
 
   LocalPhyAddress[0] = EEPROM.read(EEPROM_PHY_ADDR_START);
@@ -125,15 +114,12 @@ void setup(){
   LocalPhyAddress[4] = EEPROM.read(EEPROM_PHY_ADDR_START+4);
   memcpy( RemotePhyAddress,LocalPhyAddress,5);
   RemotePhyAddress[0] = 0x00;
-  memcpy(addr,RemotePhyAddress,5);
-  radio.openWritingPipe(addr);
-  memcpy(addr,BroadCastAddress,5);
-  radio.openReadingPipe(0,addr);
-  memcpy(addr,LocalPhyAddress,5);
-  radio.openReadingPipe(1,addr);
-  #if 0
   radio.begin();
-  #endif
+  radio.setPALevel(RF24_PA_LOW);
+  radio.openWritingPipe(RemotePhyAddress);
+  radio.openReadingPipe(0,BroadCastAddress);
+  radio.openReadingPipe(1,LocalPhyAddress);
+  radio.startListening();
 }
 
 void loop(){
