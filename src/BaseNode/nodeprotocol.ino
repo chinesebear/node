@@ -10,7 +10,17 @@
 #define BLOCK_S_CMD_SYNC              0x03
 #define BLOCK_S_CMD_LINK              0x04
 #define BLOCK_S_CMD_CELL_PARAM        0x05
-
+#define BLOCK_R_ACK_OK                0x00
+#define BLOCK_R_ACK_REPEAT            0x01
+#define BLOCK_R_ACK_PROCESS_FAIL      0x02
+#define BLOCK_R_ACK_CRC_ERR           0X03
+struct node_block_t
+{
+  byte CTL;
+  byte LEN;
+  byte INF[29];
+  byte CRC;
+} nodeblock;  
 static byte GetCRC(byte *ptr,int len)
 {
   byte crc;
@@ -29,6 +39,18 @@ static byte GetCRC(byte *ptr,int len)
     }
     return crc;
 }
+static void node_block_data_load(void)
+{
+     memset(data,0x55,RF24_PAYLOAD);
+     data[0] = nodeblock.CTL;
+     data[1] = nodeblock.LEN;
+     memcpy(data+2, nodeblock.data, nodeblock.LEN);
+     data[nodeblock.LEN + 1] = GetCRC(nodeblock.data,nodeblock.LEN);
+}
+static int node_block_transmit(void)
+{}
+static int node_block_data_process(byte* datain, byte* dataout)
+{}
 
 int BlockPorcess(byte* datain, byte* dataout)
 {
@@ -39,7 +61,13 @@ int BlockPorcess(byte* datain, byte* dataout)
   byte cmd;
   byte link;// more 1, last 0
   byte reqp;//request 0 , reply 1
-  
+  if(CRC != GetCRC(datain + 2, LEN))
+  {
+    nodeblock.CTL= (BLOCK_R|BLOCK_R_ACK_CRC_ERR);
+    nodeblock.LEN= 0;
+    iRet =  NODE_ERR;
+    goto func_end;
+  }
   BlockType = (CTL&0xC0);
   if(BLOCK_S == BlockType)
   {
@@ -48,7 +76,7 @@ int BlockPorcess(byte* datain, byte* dataout)
     switch(cmd)
     {
       case BLOCK_S_CMD_CONNECT:
-            
+           
            break;
       default:
            break;
@@ -66,4 +94,8 @@ int BlockPorcess(byte* datain, byte* dataout)
   {
     // block type error
   }
+  func_end:
+  node_block_data_load();
+  radio.write( data, RF24_PAYLOAD);
+  return iRet;
 }

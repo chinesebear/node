@@ -46,7 +46,7 @@ void loop(){
       }
       radio.stopListening();                                        // First, stop listening so we can talk   
       BlockPorcess(data,data);
-      radio.write( data, RF24_PAYLOAD);              // Send the final one back.      
+                    // Send the final one back.      
       radio.startListening();                                       // Now, resume listening so we catch the next packets.     
    }
    #endif
