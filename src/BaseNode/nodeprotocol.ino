@@ -3,7 +3,7 @@
 #define BLOCK_R 0x80
 #define BLOCK_I 0xC0
 #define BLOCK_S_RESQUEST              0x00
-#define BLOCK_S_REPLY                 0x01
+#define BLOCK_S_REPLY                 0x20
 #define BLOCK_S_CMD_CONNECT           0x00
 #define BLOCK_S_CMD_DISCONNECT        0x01
 #define BLOCK_S_CMD_WAKEUP            0x02
@@ -44,8 +44,8 @@ static void node_block_data_load(void)
      memset(data,0x55,RF24_PAYLOAD);
      data[0] = nodeblock.CTL;
      data[1] = nodeblock.LEN;
-     memcpy(data+2, nodeblock.data, nodeblock.LEN);
-     data[nodeblock.LEN + 1] = GetCRC(nodeblock.data,nodeblock.LEN);
+     memcpy(data+2, nodeblock.INF, nodeblock.LEN);
+     data[nodeblock.LEN + 1] = GetCRC(nodeblock.INF,nodeblock.LEN);
 }
 static int node_block_transmit(void)
 {}
@@ -56,11 +56,13 @@ int BlockPorcess(byte* datain, byte* dataout)
 {
   byte CTL = *datain;
   byte LEN = *(datain + 1);
+  byte *INF = datain +2;
   byte CRC = *(datain + LEN + 1);
   byte BlockType;
   byte cmd;
   byte link;// more 1, last 0
   byte reqp;//request 0 , reply 1
+  int iRet=NODE_OK;
   if(CRC != GetCRC(datain + 2, LEN))
   {
     nodeblock.CTL= (BLOCK_R|BLOCK_R_ACK_CRC_ERR);
@@ -76,7 +78,29 @@ int BlockPorcess(byte* datain, byte* dataout)
     switch(cmd)
     {
       case BLOCK_S_CMD_CONNECT:
-           
+            nodeblock.CTL= (CTL | BLOCK_S_REPLY);
+            nodeblock.LEN= 11;
+            memcpy(nodeblock.INF,RemotePhyAddress,5);
+            memcpy(nodeblock.INF+5,LocalPhyAddress,5);
+            nodeblock.INF[10] = channel;
+           break;
+      case BLOCK_S_CMD_DISCONNECT:
+            nodeblock.CTL= (CTL | BLOCK_S_REPLY);
+            nodeblock.LEN= 11;
+            memcpy(nodeblock.INF,RemotePhyAddress,5);
+            memcpy(nodeblock.INF+5,LocalPhyAddress,5);
+            nodeblock.INF[10] = channel;
+           break;
+      case BLOCK_S_CMD_WAKEUP:
+           if(memcmp(INF ,RemotePhyAddress, 5 ))
+           {
+                return NODE_THROW; 
+           }
+          nodeblock.CTL= (CTL | BLOCK_S_REPLY);
+          nodeblock.LEN= 11;
+          memcpy(nodeblock.INF,RemotePhyAddress,5);
+          memcpy(nodeblock.INF+5,LocalPhyAddress,5);
+          nodeblock.INF[10] = channel;
            break;
       default:
            break;

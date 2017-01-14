@@ -20,14 +20,16 @@
 #define RF24_PAYLOAD  32
 RF24 radio(7,8);
 byte data[RF24_PAYLOAD];
-
+byte channel;
 
 /*##################################################################################################*/
 void setup(){
   Serial.begin(115200); 
   GetAddress();
   radio.begin();
+  channel = 76;
   radio.setPALevel(RF24_PA_LOW);
+  radio.setChannel(channel);
   radio.openWritingPipe(RemotePhyAddress);
   radio.openReadingPipe(0,BroadCastAddress);
   radio.openReadingPipe(1,LocalPhyAddress);
