@@ -105,6 +105,9 @@ BOOL CnodePhyAddrBurnDlg::OnInitDialog()
 	int index;
 	CString cstr;
 	CComboBox *pBox = (CComboBox *)GetDlgItem(IDC_COMBO1);
+	CComboBox *pBox3 = (CComboBox *)GetDlgItem(IDC_COMBO3);//发射功率
+	CComboBox *pBox4 = (CComboBox *)GetDlgItem(IDC_COMBO4);//空中速率
+	CComboBox *pBox5 = (CComboBox *)GetDlgItem(IDC_COMBO5);//crc校验
 	PortOwner = this->m_hWnd;
 
 	for (i = 0, index = 0; i < 200; i++)
@@ -120,19 +123,31 @@ BOOL CnodePhyAddrBurnDlg::OnInitDialog()
 	}
 
 	pBox->SetCurSel(0); //设置为第零个元素
-	CEdit *pEdit5 = (CEdit*)GetDlgItem(IDC_EDIT5);
+	pBox3->SetCurSel(0); //设置为第零个元素
+	pBox4->SetCurSel(0); //设置为第零个元素
+	pBox5->SetCurSel(0); //设置为第零个元素
+
+	CEdit *pEdit6 = (CEdit*)GetDlgItem(IDC_EDIT6);//通信频点
+	pEdit6->SetWindowText(_T("79"));
+	pEdit6->SetLimitText(3);
+
+	CEdit *pEdit7 = (CEdit*)GetDlgItem(IDC_EDIT7);//接收长度
+	pEdit7->SetWindowText(_T("32"));
+	pEdit7->SetLimitText(2);
+
+	CEdit *pEdit5 = (CEdit*)GetDlgItem(IDC_EDIT5);//本地地址 MSB
 	pEdit5->SetWindowText(_T("00"));
 	pEdit5->SetLimitText(2);
-	CEdit *pEdit4 = (CEdit*)GetDlgItem(IDC_EDIT4);
+	CEdit *pEdit4 = (CEdit*)GetDlgItem(IDC_EDIT4);//本地地址 
 	pEdit4->SetWindowText(_T("00"));
 	pEdit4->SetLimitText(2);
-	CEdit *pEdit3 = (CEdit*)GetDlgItem(IDC_EDIT3);
+	CEdit *pEdit3 = (CEdit*)GetDlgItem(IDC_EDIT3);//本地地址 
 	pEdit3->SetWindowText(_T("00"));
 	pEdit3->SetLimitText(2);
-	CEdit *pEdit2 = (CEdit*)GetDlgItem(IDC_EDIT2);
+	CEdit *pEdit2 = (CEdit*)GetDlgItem(IDC_EDIT2);//本地地址 
 	pEdit2->SetWindowText(_T("00"));
 	pEdit2->SetLimitText(2);
-	CEdit *pEdit1 = (CEdit*)GetDlgItem(IDC_EDIT1);
+	CEdit *pEdit1 = (CEdit*)GetDlgItem(IDC_EDIT1);//本地地址 LSB
 	pEdit1->SetWindowText(_T("00"));
 	pEdit1->SetLimitText(2);
 
@@ -202,7 +217,7 @@ bool CnodePhyAddrBurnDlg::CnodeConnect(void)
 		/***check serial port***/
 		m_SerialPort.Reset();
 		m_SerialPort.Write("A",1);
-		m_SerialPort.Read(&ch,1);
+		m_SerialPort.RecvData(&ch,1);
 		//strTemp.Format("%c", ch);
 		//AfxMessageBox(strTemp, MB_OKCANCEL | MB_ICONQUESTION);
 		if(ch == 'B')
@@ -351,7 +366,7 @@ void CnodePhyAddrBurnDlg::OnBnClickedButton2Write()
 		ch[5] = CStringToHex(strTemp);
 		m_SerialPort.Write("W",1);
 		m_SerialPort.Write(ch+1,5);
-		m_SerialPort.Read(ch,1);
+		m_SerialPort.RecvData(ch,1);
 		if(ch[0] == 'B')
 		{
 			AfxMessageBox("write node phy address success", MB_OKCANCEL | MB_ICONQUESTION);
