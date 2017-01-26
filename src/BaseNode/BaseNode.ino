@@ -38,7 +38,7 @@ void setup(){
 
 void loop(){
    
-  #if 0
+  #if 1
   if( radio.available())
   {
                                                                     // Variable for the received timestamp
@@ -47,8 +47,7 @@ void loop(){
         radio.read( data, RF24_PAYLOAD);             // Get the payload
       }
       radio.stopListening();                                        // First, stop listening so we can talk   
-      BlockPorcess(data,data);
-                    // Send the final one back.      
+      BlockPorcess(data,data); 
       radio.startListening();                                       // Now, resume listening so we catch the next packets.     
    }
    #endif
